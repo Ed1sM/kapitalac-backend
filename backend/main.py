@@ -28,10 +28,13 @@ app = FastAPI(
     version=APP_VERSION,
 )
 
+# VAŽNO:
+# allow_credentials mora biti False kada koristimo ALLOWED_ORIGINS="*".
+# Lovable ne treba slati cookies/sesije, tako da credentials nijesu potrebni.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -129,7 +132,10 @@ async def analyze_pdf(file: UploadFile = File(...)):
 
         validation = validate_financial_data(extracted_data)
         scoring = calculate_altman_scores(extracted_data)
-        ml_prediction = predict_ml_risk(scoring=scoring, validation=validation)
+        ml_prediction = predict_ml_risk(
+            scoring=scoring,
+            validation=validation,
+        )
 
         lovable_payload = build_lovable_payload(
             financials=extracted_data,
@@ -176,7 +182,10 @@ def calculate_altman(financials: dict = Body(...)):
     try:
         validation = validate_financial_data(financials)
         scoring = calculate_altman_scores(financials)
-        ml_prediction = predict_ml_risk(scoring=scoring, validation=validation)
+        ml_prediction = predict_ml_risk(
+            scoring=scoring,
+            validation=validation,
+        )
 
         lovable_payload = build_lovable_payload(
             financials=financials,
@@ -209,7 +218,10 @@ def predict_risk(payload: dict = Body(...)):
         scoring = payload.get("scoring", {})
         validation = payload.get("validation", {})
 
-        prediction = predict_ml_risk(scoring=scoring, validation=validation)
+        prediction = predict_ml_risk(
+            scoring=scoring,
+            validation=validation,
+        )
 
         return {
             "status": "success",

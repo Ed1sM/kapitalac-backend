@@ -2,10 +2,13 @@ import os
 
 
 APP_NAME = "Kapitalac API"
-APP_VERSION = "0.6.0"
+APP_VERSION = "0.6.1"
 
-# Kasnije kada dobiješ Lovable URL, dodaćeš ga u environment varijablu:
-# ALLOWED_ORIGINS=https://tvoj-lovable-sajt.lovable.app,https://kapitalac.me
+# Za testiranje sa Lovable koristi:
+# ALLOWED_ORIGINS=*
+#
+# Kasnije, kada sve proradi, možeš ograničiti na:
+# ALLOWED_ORIGINS=https://kapitalac.lovable.app,https://kapitalac.me
 ALLOWED_ORIGINS_RAW = os.getenv("ALLOWED_ORIGINS", "*")
 
 if ALLOWED_ORIGINS_RAW.strip() == "*":
