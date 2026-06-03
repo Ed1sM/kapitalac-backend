@@ -1,0 +1,50 @@
+﻿file_name,company_name,altman_z_prime_score,altman_z_prime_zone,data_quality_score,needs_review,issues_count,issues
+adriatic.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ZA USLUGE U POMORSKOM SAOBRAĆAJU I ZA RAZVOJ PROJEKATA O NEKRETNINAMA ""ADRIATIC MARINAS"" TIVAT",0.5452,Distress zone,100,False,0,
+aerodrom.pdf,"AKCIONARSKO DRUŠTVO ZA USLUŽNE DJELATNOSTI U VAZDUŠNOM SAOBRAĆAJU ""AERODROMI CRNE GORE"" PODGORICA",2.4526,Grey zone,100,False,0,
+anahit.pdf,"""ANAHIT COMPANY"" DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU BUDVA",-3520.6292,Distress zone,72,True,3,"ROA je ekstreman; moguće pogrešno očitana neto dobit ili ukupna aktiva | Debt-to-assets je van realnog raspona; provjeriti aktivu, kapital i obaveze | Working capital / assets je ekstreman; provjeriti obrtna sredstva i ukupnu aktivu"
+anl kapital.pdf,"DOO ""ANL KAPITAL"" ZA PROIZVODNJU, PROMET I USLUGE NIKŠIĆ",-20.7167,Distress zone,72,True,2,"ROA je ekstreman; moguće pogrešno očitana neto dobit ili ukupna aktiva | Debt-to-assets je van realnog raspona; provjeriti aktivu, kapital i obaveze"
+ayush yoga.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""AYUSH AYURVEDA AND YOGA THERAPHY CENTER"" PODGORICA",-43.1329,Distress zone,72,True,3,"ROA je ekstreman; moguće pogrešno očitana neto dobit ili ukupna aktiva | Debt-to-assets je van realnog raspona; provjeriti aktivu, kapital i obaveze | Working capital / assets je ekstreman; provjeriti obrtna sredstva i ukupnu aktivu"
+bar kod.pdf,"DRUŠTVO ZA PROIZVODNJU,PROMET I USLUGE ""BAR-KOD"" D.O.O. PODGORICA",4.4747,Safe zone,100,False,0,
+bemax.pdf,"""BEMAX "" D.O.O. PODGORICA",2.2928,Grey zone,100,False,0,
+budvanska.pdf,"HOTELSKA GRUPA ""BUDVANSKA RIVIJERA"" A.D. - BUDVA",2.9431,Safe zone,100,False,0,
+capita.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ZA PROIZVODNJU, PROMET I USLUGE, EXPORT - IMPORT ""CAPITA"" D.O.O. - HERCEG NOVI",-1.471,Distress zone,72,False,0,
+cedis.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""CRNOGORSKI ELEKTRODISTRIBUTIVNI SISTEM"" PODGORICA",2.1792,Grey zone,100,False,0,
+cges.pdf,"""CRNOGORSKI ELEKTROPRENOSNI SISTEM"" AD",2.0073,Grey zone,100,False,0,
+crnagoraput.pdf,"""CRNAGORAPUT"" A.D. PODGORICA",0.5215,Distress zone,80,False,0,
+dams co.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ZA PROIZVODNJU, PROMET I USLUGE ""DAMS CO"" BIJELO POLJE",-13.6228,Distress zone,72,True,2,"ROA je ekstreman; moguće pogrešno očitana neto dobit ili ukupna aktiva | Debt-to-assets je van realnog raspona; provjeriti aktivu, kapital i obaveze"
+dmd delta.pdf,"DRUŠTVO ZA VELETRGOVINU,USLUGE,EXPORT-IMPORT ""DMD DELTA"" D.O.O. PODGORICA",4.0282,Safe zone,80,False,0,
+domaca trgovina.pdf,"""DOMAĆA TRGOVINA"" D.O.O. PODGORICA",1.8566,Grey zone,100,False,0,
+ell-mont.pdf,"D.O.O. ""ELL-MONT"" - ROŽAJE",2.1093,Grey zone,92,False,0,
+epcg solar.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""EPCG-SOLAR-GRADNJA"" NIKŠIĆ",1.2158,Grey zone,72,False,0,
+epcg.pdf,ELEKTROPRIVREDA CRNE GORE AD-NIKŠIĆ,0.9915,Distress zone,100,False,0,
+farmegra.pdf,"DRUŠTVO ZA TRGOVINU,PROMET I USLUGE,""FARMEGRA"" D.O.O. PODGORICA",3.6029,Safe zone,100,False,0,
+glosarij.pdf,"DRUŠTVO ZA TRGOVINU NA VELIKO FARMACEUTSKIM PROIZVODIMA ""GLOSARIJ"" D.O.O. - PODGORICA",3.5892,Safe zone,100,False,0,
+hotel products.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORONOŠĆU ""HOTEL PRODUCTS"" DOO - PODGORICA",-2.1356,Distress zone,72,False,0,
+idea.pdf,"PRIVREDNO DRUŠTVO ZA TRGOVINU I USLUGE ""IDEA - CG"" D.O.O. - PODGORICA",2.4628,Grey zone,100,False,0,
+jrent.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""JRENT"" HERCEG NOVI",-797.3421,Distress zone,72,True,3,"ROA je ekstreman; moguće pogrešno očitana neto dobit ili ukupna aktiva | Debt-to-assets je van realnog raspona; provjeriti aktivu, kapital i obaveze | Working capital / assets je ekstreman; provjeriti obrtna sredstva i ukupnu aktivu"
+kips.pdf,"""KIPS"" KVALITET I POSLOVNA SIGURNOST DRUŠTVO ZA PROIZVODNJU I PROMET ROBA I USLUGA D.O.O. PODGORICA",6.7532,Safe zone,100,False,0,
+kop 2025.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""CRNA GORA KOP 2025"" BAR",-2577.962,Distress zone,72,True,3,"ROA je ekstreman; moguće pogrešno očitana neto dobit ili ukupna aktiva | Debt-to-assets je van realnog raspona; provjeriti aktivu, kapital i obaveze | Working capital / assets je ekstreman; provjeriti obrtna sredstva i ukupnu aktivu"
+lakovic.pdf,"""HARD DISCOUNT LAKOVIĆ"" D.O.O. - PODGORICA",2.5905,Grey zone,100,False,0,
+limi pek.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""LIMI&PEK"" DOO PODGORICA",1.7778,Grey zone,92,False,0,
+lob.pdf,"""LOB COMMPANY"" DOO ZA PROMET I USLUGE,EXPORT-IMPORT - PODGORICA",3.6926,Safe zone,100,False,0,
+lustica.pdf,"""LUŠTICA DEVELOPMENT""AD TIVAT",0.4443,Distress zone,100,False,0,
+megapromet.pdf,"""MEGAPROMET"" DRUŠTVO ZA TRGOVINU I USLUGE D.O.O BUDVA",3.288,Safe zone,100,False,0,
+meso promet.pdf,"DRUŠTVO ZA PROIZVODNJU,PROMET I USLUGE ""MESO-PROMET"" D.O.O. BIJELO POLJE",2.7508,Grey zone,100,False,0,
+montefarm.pdf,"ZDRAVSTVENA USTANOVA APOTEKE CRNE GORE ""MONTEFARM""- PODGORICA",4.2089,Safe zone,100,False,0,
+mote put.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""MONTE PUT"" - PODGORICA",1.288,Grey zone,80,False,0,
+mpm.pdf,"""MPM"" DRUŠTVO ZA TRGOVINU, ZASTUPANJE I POSREDOVANJE DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU PODGORICA",2.2821,Grey zone,100,False,0,
+mtel.pdf,"DRUŠTVO ZA TELEKOMUNIKACIJE ""MTEL"" DOO PODGORICA",1.4171,Grey zone,100,False,0,
+nelt.pdf,"DRUŠTVO ZA TRGOVINU I USLUGE, EXPORT-IMPORT ""NELT MNE"" D.O.O. PODGORICA",3.0547,Safe zone,100,False,0,
+okov.pdf,"DRUŠTVO ZA PROMET, PROIZVODNJU I USLUGE ""OKOV"" D.O.O. - PODGORICA",3.3498,Safe zone,100,False,0,
+one.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ZA PROMET, IZGRADNJU I EKSPLOATACIJU MREŽE MOBILNIH TELEKOMUNIKACIJA ""ONE CRNA GORA"" DOO PODGORICA",2.6314,Grey zone,100,False,0,
+posta.pdf,POŠTA CRNE GORE AKCIONARSKO DRUŠTVO PODGORICA,2.2459,Grey zone,100,False,0,
+propianolab.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""PROPIANOLAB"" TIVAT",-29.3482,Distress zone,72,True,3,"ROA je ekstreman; moguće pogrešno očitana neto dobit ili ukupna aktiva | Debt-to-assets je van realnog raspona; provjeriti aktivu, kapital i obaveze | Working capital / assets je ekstreman; provjeriti obrtna sredstva i ukupnu aktivu"
+sportvision.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""SPORT VISION"" PODGORICA",3.9979,Safe zone,100,False,0,
+stadion.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""STADION"" PODGORICA",269.4684,Safe zone,80,True,7,"Kapital je neuobičajeno veći od ukupne aktive; moguće pogrešno očitan total_assets ili equity | Ukupne obaveze su negativne; moguće pogrešno očitan total_assets ili equity | Obrtna sredstva su neuobičajeno veća od ukupne aktive | Obrt aktive je ekstremno visok; moguće pogrešno očitana ukupna aktiva ili prihod | ROA je ekstreman; moguće pogrešno očitana neto dobit ili ukupna aktiva | Debt-to-assets je van realnog raspona; provjeriti aktivu, kapital i obaveze | Working capital / assets je ekstreman; provjeriti obrtna sredstva i ukupnu aktivu"
+summer zey.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""SUMMER ZEY"" BUDVA",-160.1478,Distress zone,72,True,3,"ROA je ekstreman; moguće pogrešno očitana neto dobit ili ukupna aktiva | Debt-to-assets je van realnog raspona; provjeriti aktivu, kapital i obaveze | Working capital / assets je ekstreman; provjeriti obrtna sredstva i ukupnu aktivu"
+tehnomax.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""TEHNO MAX"" - PODGORICA",5.0485,Safe zone,100,False,0,
+tomontenegro.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ZA TRANSPORT PUTNIKA I ROBE U VAZDUŠNOM SAOBRAĆAJU ""TOMONTENEGRO""",3.3918,Safe zone,100,False,0,
+ukras 2025.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""UKRAS 2025"" BERANE",-1141.9388,Distress zone,72,True,3,"ROA je ekstreman; moguće pogrešno očitana neto dobit ili ukupna aktiva | Debt-to-assets je van realnog raspona; provjeriti aktivu, kapital i obaveze | Working capital / assets je ekstreman; provjeriti obrtna sredstva i ukupnu aktivu"
+voli.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""VOLI TRADE"" D.O.O. ZA PROMET I USLUGE EXPORT- IMPORT - PODGORICA",2.2027,Grey zone,100,False,0,
+ypour fortune.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""YOUR FORTUNE"" BUDVA",,Unknown,16,True,4,Nedostaje obavezno polje: total_assets | Nedostaje obavezno polje: current_assets | Altman Z' nije izračunat | Nizak ili srednji kvalitet ekstrakcije
+zetagradnja.pdf,"DRUŠTVO SA OGRANIČENOM ODGOVORNOŠĆU ""ZETAGRADNJA"" PODGORICA",1.92,Grey zone,100,False,0,
