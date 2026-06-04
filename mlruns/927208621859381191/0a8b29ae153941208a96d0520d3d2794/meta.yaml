@@ -1,0 +1,14 @@
+artifact_uri: file:C:/Users/Korisnik/Desktop/bankarko/mlruns/927208621859381191/0a8b29ae153941208a96d0520d3d2794/artifacts
+end_time: 1780613695978
+entry_point_name: ''
+experiment_id: '927208621859381191'
+lifecycle_stage: active
+run_id: 0a8b29ae153941208a96d0520d3d2794
+run_name: kapitalac-Logistic Regression
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780613695825
+status: 3
+tags: []
+user_id: Korisnik

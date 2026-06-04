@@ -146,14 +146,15 @@ def classify_ml_probability(probability: float) -> dict:
     }
 
 
-def predict_with_real_model(features: dict, model_bundle: dict) -> dict:
-    model = model_bundle["model"]
-    feature_names = model_bundle["feature_names"]
-
-    row = pd.DataFrame(
+def make_feature_row(features: dict, feature_names: list[str]) -> pd.DataFrame:
+    return pd.DataFrame(
         [[features.get(feature_name, 0.0) for feature_name in feature_names]],
         columns=feature_names,
     )
+
+
+def predict_probability_for_model(model, features: dict, feature_names: list[str]) -> float:
+    row = make_feature_row(features=features, feature_names=feature_names)
 
     if hasattr(model, "predict_proba"):
         probability = float(model.predict_proba(row)[0][1])
@@ -162,20 +163,233 @@ def predict_with_real_model(features: dict, model_bundle: dict) -> dict:
         probability = 0.75 if prediction == 1 else 0.25
 
     probability = round(max(0.01, min(probability, 0.99)), 4)
+
+    return probability
+
+
+def build_model_prediction_item(
+    model_name: str,
+    probability: float,
+    metrics: dict,
+    active_model_name: str,
+) -> dict:
     classification = classify_ml_probability(probability)
 
     return {
-        "model_name": model_bundle.get("model_name", "Kapitalac ML Model"),
+        "model_name": model_name,
+        "is_active": model_name == active_model_name,
+        "risk_probability": probability,
+        "risk_probability_percent": f"{probability * 100:.2f}%",
+        "classification": classification,
+        "risk_class": classification.get("risk_class"),
+        "risk_label": classification.get("risk_label"),
+        "risk_level": classification.get("risk_level"),
+        "metrics": metrics or {},
+    }
+
+
+def build_candidate_predictions(
+    model_bundle: dict,
+    features: dict,
+) -> list[dict]:
+    feature_names = model_bundle.get("feature_names", ML_FEATURE_NAMES)
+    active_model_name = model_bundle.get("model_name", "Kapitalac ML Model")
+    all_model_metrics = model_bundle.get("all_model_metrics", {})
+
+    candidate_models = model_bundle.get("candidate_models")
+
+    predictions = []
+
+    if isinstance(candidate_models, dict) and candidate_models:
+        for model_name, model in candidate_models.items():
+            try:
+                probability = predict_probability_for_model(
+                    model=model,
+                    features=features,
+                    feature_names=feature_names,
+                )
+
+                predictions.append(
+                    build_model_prediction_item(
+                        model_name=model_name,
+                        probability=probability,
+                        metrics=all_model_metrics.get(model_name, {}),
+                        active_model_name=active_model_name,
+                    )
+                )
+            except Exception as error:
+                predictions.append(
+                    {
+                        "model_name": model_name,
+                        "is_active": model_name == active_model_name,
+                        "error": str(error),
+                        "risk_probability": None,
+                        "risk_probability_percent": None,
+                        "classification": {
+                            "risk_class": "Unavailable",
+                            "risk_label": "Nedostupno",
+                            "risk_level": "unknown",
+                        },
+                        "risk_class": "Unavailable",
+                        "risk_label": "Nedostupno",
+                        "risk_level": "unknown",
+                        "metrics": all_model_metrics.get(model_name, {}),
+                    }
+                )
+
+        return predictions
+
+    # Fallback za starije modele gdje nije sačuvan candidate_models.
+    active_model = model_bundle.get("model")
+
+    if active_model is not None:
+        probability = predict_probability_for_model(
+            model=active_model,
+            features=features,
+            feature_names=feature_names,
+        )
+
+        predictions.append(
+            build_model_prediction_item(
+                model_name=active_model_name,
+                probability=probability,
+                metrics=model_bundle.get("metrics", {}),
+                active_model_name=active_model_name,
+            )
+        )
+
+    return predictions
+
+
+def build_model_consensus(candidate_predictions: list[dict]) -> dict:
+    valid_predictions = [
+        item for item in candidate_predictions
+        if item.get("risk_level") in ["low", "medium", "high"]
+    ]
+
+    if not valid_predictions:
+        return {
+            "available": False,
+            "message": "Konsenzus modela nije dostupan.",
+            "total_models": 0,
+            "risk_level": "unknown",
+            "risk_label": "Nedostupno",
+            "agreement_count": 0,
+            "agreement_percent": "0.00%",
+            "distribution": {},
+        }
+
+    distribution = {}
+
+    for item in valid_predictions:
+        risk_level = item.get("risk_level")
+        distribution[risk_level] = distribution.get(risk_level, 0) + 1
+
+    risk_priority = {
+        "high": 3,
+        "medium": 2,
+        "low": 1,
+    }
+
+    consensus_level = max(
+        distribution.keys(),
+        key=lambda level: (distribution[level], risk_priority.get(level, 0)),
+    )
+
+    total_models = len(valid_predictions)
+    agreement_count = distribution[consensus_level]
+    agreement_ratio = agreement_count / total_models
+
+    label_map = {
+        "low": "Nizak rizik",
+        "medium": "Srednji rizik",
+        "high": "Visok rizik",
+    }
+
+    class_map = {
+        "low": "Low risk",
+        "medium": "Medium risk",
+        "high": "High risk",
+    }
+
+    return {
+        "available": True,
+        "method": "majority_vote_with_conservative_tie_break",
+        "total_models": total_models,
+        "risk_level": consensus_level,
+        "risk_class": class_map.get(consensus_level, "Unknown"),
+        "risk_label": label_map.get(consensus_level, "Nepoznato"),
+        "agreement_count": agreement_count,
+        "agreement_ratio": round(agreement_ratio, 4),
+        "agreement_percent": f"{agreement_ratio * 100:.2f}%",
+        "distribution": distribution,
+        "message": (
+            f"Konsenzus modela: {agreement_count}/{total_models} modela "
+            f"procjenjuje {label_map.get(consensus_level, 'nepoznat rizik').lower()}."
+        ),
+    }
+
+
+def predict_with_real_model(features: dict, model_bundle: dict) -> dict:
+    feature_names = model_bundle.get("feature_names", ML_FEATURE_NAMES)
+    active_model_name = model_bundle.get("model_name", "Kapitalac ML Model")
+    active_model = model_bundle.get("model")
+
+    candidate_predictions = build_candidate_predictions(
+        model_bundle=model_bundle,
+        features=features,
+    )
+
+    active_prediction = next(
+        (
+            item for item in candidate_predictions
+            if item.get("model_name") == active_model_name and item.get("risk_probability") is not None
+        ),
+        None,
+    )
+
+    if active_prediction is None and active_model is not None:
+        probability = predict_probability_for_model(
+            model=active_model,
+            features=features,
+            feature_names=feature_names,
+        )
+
+        active_prediction = build_model_prediction_item(
+            model_name=active_model_name,
+            probability=probability,
+            metrics=model_bundle.get("metrics", {}),
+            active_model_name=active_model_name,
+        )
+
+    if active_prediction is None:
+        probability = 0.50
+        classification = classify_ml_probability(probability)
+    else:
+        probability = active_prediction.get("risk_probability", 0.50)
+        classification = active_prediction.get("classification", classify_ml_probability(probability))
+
+    model_consensus = build_model_consensus(candidate_predictions)
+
+    return {
+        "model_name": active_model_name,
         "model_type": model_bundle.get("model_type", "machine_learning"),
         "is_ml_model_loaded": True,
         "risk_probability": probability,
         "risk_probability_percent": f"{probability * 100:.2f}%",
         "classification": classification,
         "features": features,
+        "candidate_predictions": candidate_predictions,
+        "model_consensus": model_consensus,
         "model_metrics": model_bundle.get("metrics", {}),
         "all_model_metrics": model_bundle.get("all_model_metrics", {}),
         "training_info": model_bundle.get("training_info", {}),
-        "note": "Rezultat je izračunat pomoću istreniranog hibridnog ML modela.",
+        "candidate_model_names": model_bundle.get("candidate_model_names", []),
+        "hybrid_note": model_bundle.get("hybrid_note"),
+        "note": (
+            "Aktivna procjena dolazi iz modela sa najboljim metrikama, "
+            "dok se procjene ostalih kandidata prikazuju radi transparentnosti."
+        ),
     }
 
 
@@ -197,6 +411,11 @@ def predict_ml_risk(scoring: dict, validation: dict) -> dict:
         "risk_probability_percent": f"{probability * 100:.2f}%",
         "classification": classification,
         "features": features,
+        "candidate_predictions": [],
+        "model_consensus": {
+            "available": False,
+            "message": "Konsenzus modela nije dostupan jer ML model nije učitan.",
+        },
         "note": (
             "Ovo je privremeni rule-based rezultat. "
             "Kada se istrenira pravi model i sačuva u models/kapitalac_ml_model.joblib, "

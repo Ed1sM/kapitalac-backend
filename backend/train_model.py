@@ -284,16 +284,6 @@ def choose_best_model(models: list[dict]) -> dict:
 
 
 def log_to_mlflow(best_model: dict, all_models: list[dict], training_info: dict):
-    """
-    MLflow koristimo za MLOps tracking:
-    - parametri
-    - metrike
-    - poređenje kandidata
-    - informacije o treningu
-
-    Model ne logujemo kroz MLflow registry.
-    Model se čuva stabilno preko joblib-a.
-    """
     if not MLFLOW_AVAILABLE:
         print("MLflow nije dostupan. Preskačem MLflow logovanje.")
         return None
@@ -387,10 +377,17 @@ def main():
 
     MODEL_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
+    candidate_models = {
+        model_info["name"]: model_info["model"]
+        for model_info in trained_models
+    }
+
     model_bundle = {
         "model_name": best_model["name"],
         "model_type": "machine_learning_hybrid",
         "model": best_model["model"],
+        "candidate_models": candidate_models,
+        "candidate_model_names": list(candidate_models.keys()),
         "feature_names": ML_FEATURE_NAMES,
         "metrics": best_model["metrics"],
         "all_model_metrics": {
@@ -402,7 +399,7 @@ def main():
         "hybrid_note": (
             "Trenirani su Logistic Regression, Random Forest i XGBoost. "
             "Kao aktivni model automatski se bira kandidat sa najboljim metrikama. "
-            "XGBoost ostaje dio hibridnog poređenja i evaluacije."
+            "Sistem transparentno prikazuje i procjene svih kandidata."
         ),
     }
 
@@ -421,6 +418,12 @@ def main():
     print("Svi kandidati:")
     for model_info in trained_models:
         print(f"- {model_info['name']}: {model_info['metrics']}")
+
+    print()
+    print("Sačuvani kandidati u model bundle:")
+    for model_name in candidate_models.keys():
+        active_marker = "aktivni" if model_name == best_model["name"] else "kandidat"
+        print(f"- {model_name}: {active_marker}")
 
     print()
     print(f"MLflow tracking URI: {MLFLOW_TRACKING_URI}")
