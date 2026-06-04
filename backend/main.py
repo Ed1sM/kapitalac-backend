@@ -12,6 +12,8 @@ from backend.config import (
     MAX_UPLOAD_SIZE_BYTES,
     MAX_UPLOAD_SIZE_MB,
 )
+from backend.drift_detection import detect_feature_drift
+from backend.explainability import build_prediction_explanation
 from backend.ml_model import (
     ML_FEATURE_NAMES,
     MODEL_PATH,
@@ -28,9 +30,6 @@ app = FastAPI(
     version=APP_VERSION,
 )
 
-# VAŽNO:
-# allow_credentials mora biti False kada koristimo ALLOWED_ORIGINS="*".
-# Lovable ne treba slati cookies/sesije, tako da credentials nijesu potrebni.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -86,9 +85,87 @@ def model_status():
             "model_name": model_bundle.get("model_name"),
             "model_type": model_bundle.get("model_type"),
             "metrics": model_bundle.get("metrics", {}),
+            "all_model_metrics": model_bundle.get("all_model_metrics", {}),
+            "training_info": model_bundle.get("training_info", {}),
         },
-        "message": "API koristi istrenirani ML model.",
+        "message": "API koristi istrenirani hibridni ML model.",
         "features": model_bundle.get("feature_names", ML_FEATURE_NAMES),
+    }
+
+
+@app.get("/mlops-status")
+def mlops_status():
+    model_bundle = load_ml_model()
+
+    if model_bundle is None:
+        return {
+            "status": "ok",
+            "is_ml_model_loaded": False,
+            "message": "ML model nije učitan.",
+        }
+
+    training_info = model_bundle.get("training_info", {})
+
+    return {
+        "status": "ok",
+        "is_ml_model_loaded": True,
+        "mlops": {
+            "mlflow_tracking_uri": training_info.get("mlflow_tracking_uri"),
+            "mlflow_run_id": training_info.get("mlflow_run_id"),
+            "labeling_method": training_info.get("labeling_method"),
+            "created_at": training_info.get("created_at"),
+            "training_rows": training_info.get("training_rows"),
+            "test_rows": training_info.get("test_rows"),
+            "total_labeled_rows": training_info.get("total_labeled_rows"),
+            "class_counts": training_info.get("class_counts"),
+        },
+        "drift_detection": {
+            "is_enabled": bool(model_bundle.get("reference_stats")),
+            "method": "single_observation_reference_stats",
+            "reference_features_count": len(model_bundle.get("reference_stats", {})),
+        },
+        "message": "MLOps status je uspješno pročitan.",
+    }
+
+
+def analyze_financials(extracted_data: dict) -> dict:
+    validation = validate_financial_data(extracted_data)
+    scoring = calculate_altman_scores(extracted_data)
+    ml_prediction = predict_ml_risk(
+        scoring=scoring,
+        validation=validation,
+    )
+
+    model_explanation = build_prediction_explanation(ml_prediction)
+    drift_detection = detect_feature_drift(
+        features=ml_prediction.get("features", {}),
+    )
+
+    lovable_payload = build_lovable_payload(
+        financials=extracted_data,
+        scoring=scoring,
+        validation=validation,
+        ml_prediction=ml_prediction,
+        model_explanation=model_explanation,
+        drift_detection=drift_detection,
+    )
+
+    return {
+        "lovable": lovable_payload,
+        "company": {
+            "file_name": extracted_data.get("file_name"),
+            "company_name": extracted_data.get("company_name"),
+            "registration_number": extracted_data.get("registration_number"),
+            "activity_code": extracted_data.get("activity_code"),
+            "report_year": extracted_data.get("report_year"),
+        },
+        "financials": extracted_data,
+        "validation": validation,
+        "scoring": scoring,
+        "ml_prediction": ml_prediction,
+        "model_explanation": model_explanation,
+        "shap_explanation": model_explanation,
+        "drift_detection": drift_detection,
     }
 
 
@@ -130,37 +207,10 @@ async def analyze_pdf(file: UploadFile = File(...)):
         extracted_data = extract_financials_from_pdf(temp_file_path)
         extracted_data["file_name"] = file.filename
 
-        validation = validate_financial_data(extracted_data)
-        scoring = calculate_altman_scores(extracted_data)
-        ml_prediction = predict_ml_risk(
-            scoring=scoring,
-            validation=validation,
-        )
-
-        lovable_payload = build_lovable_payload(
-            financials=extracted_data,
-            scoring=scoring,
-            validation=validation,
-            ml_prediction=ml_prediction,
-        )
-
         return {
             "status": "success",
             "message": "PDF je uspješno obrađen i analiziran.",
-            "data": {
-                "lovable": lovable_payload,
-                "company": {
-                    "file_name": extracted_data.get("file_name"),
-                    "company_name": extracted_data.get("company_name"),
-                    "registration_number": extracted_data.get("registration_number"),
-                    "activity_code": extracted_data.get("activity_code"),
-                    "report_year": extracted_data.get("report_year"),
-                },
-                "financials": extracted_data,
-                "validation": validation,
-                "scoring": scoring,
-                "ml_prediction": ml_prediction,
-            },
+            "data": analyze_financials(extracted_data),
         }
 
     except HTTPException:
@@ -180,29 +230,10 @@ async def analyze_pdf(file: UploadFile = File(...)):
 @app.post("/calculate-altman")
 def calculate_altman(financials: dict = Body(...)):
     try:
-        validation = validate_financial_data(financials)
-        scoring = calculate_altman_scores(financials)
-        ml_prediction = predict_ml_risk(
-            scoring=scoring,
-            validation=validation,
-        )
-
-        lovable_payload = build_lovable_payload(
-            financials=financials,
-            scoring=scoring,
-            validation=validation,
-            ml_prediction=ml_prediction,
-        )
-
         return {
             "status": "success",
             "message": "Altman Z-Score je uspješno izračunat.",
-            "data": {
-                "lovable": lovable_payload,
-                "validation": validation,
-                "scoring": scoring,
-                "ml_prediction": ml_prediction,
-            },
+            "data": analyze_financials(financials),
         }
 
     except Exception as error:
@@ -223,10 +254,20 @@ def predict_risk(payload: dict = Body(...)):
             validation=validation,
         )
 
+        model_explanation = build_prediction_explanation(prediction)
+        drift_detection = detect_feature_drift(
+            features=prediction.get("features", {}),
+        )
+
         return {
             "status": "success",
             "message": "Predikcija rizika je uspješno izračunata.",
-            "data": prediction,
+            "data": {
+                "prediction": prediction,
+                "model_explanation": model_explanation,
+                "shap_explanation": model_explanation,
+                "drift_detection": drift_detection,
+            },
         }
 
     except Exception as error:
@@ -253,19 +294,34 @@ def model_info():
                 "purpose": "Procjena rizika za privatne firme koje se ne kotiraju na berzi",
             },
             {
-                "name": "Financial Ratio Analysis",
-                "type": "financial_ratios",
-                "purpose": "Likvidnost, zaduženost, profitabilnost i obrt aktive",
-            },
-            {
-                "name": "Data Quality Validation",
-                "type": "validation",
-                "purpose": "Provjera da li su podaci iz PDF-a kompletni i konzistentni",
-            },
-            {
-                "name": "Kapitalac ML Model",
+                "name": "Logistic Regression",
                 "type": "machine_learning",
-                "purpose": "ML procjena rizika na osnovu finansijskih pokazatelja",
+                "purpose": "Binarna klasifikacija rizika",
+            },
+            {
+                "name": "Random Forest",
+                "type": "machine_learning",
+                "purpose": "Nelinearni model za finansijske pokazatelje",
+            },
+            {
+                "name": "XGBoost",
+                "type": "machine_learning_gradient_boosting",
+                "purpose": "Hibridni model za unapređenje Altman predikcije",
+            },
+            {
+                "name": "SHAP explanations",
+                "type": "explainable_ai",
+                "purpose": "Objašnjenje koji faktori povećavaju ili smanjuju rizik",
+            },
+            {
+                "name": "MLflow tracking",
+                "type": "mlops",
+                "purpose": "Praćenje eksperimenata, metrika i modela",
+            },
+            {
+                "name": "Drift detection",
+                "type": "mlops",
+                "purpose": "Praćenje odstupanja novih izvještaja od trening distribucije",
             },
         ],
         "ml_note": (
@@ -275,6 +331,7 @@ def model_info():
         ),
         "main_endpoint_for_lovable": "/analyze-pdf",
         "model_status_endpoint": "/model-status",
+        "mlops_status_endpoint": "/mlops-status",
         "allowed_origins": ALLOWED_ORIGINS,
         "max_upload_size_mb": MAX_UPLOAD_SIZE_MB,
     }

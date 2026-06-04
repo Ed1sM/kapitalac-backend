@@ -208,6 +208,8 @@ def build_lovable_payload(
     scoring: dict,
     validation: dict,
     ml_prediction: dict | None = None,
+    model_explanation: dict | None = None,
+    drift_detection: dict | None = None,
 ) -> dict:
     private_score = scoring.get("altman_private", {})
     original_score = scoring.get("altman_original", {})
@@ -240,6 +242,9 @@ def build_lovable_payload(
             "secondary_zone": original_classification.get("zone"),
         },
         "ml_prediction": ml_prediction,
+        "model_explanation": model_explanation,
+        "shap_explanation": model_explanation,
+        "drift_detection": drift_detection,
         "financial_highlights": {
             "total_assets": financials.get("total_assets"),
             "total_assets_formatted": format_number(financials.get("total_assets")),

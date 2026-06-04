@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional
 
 import joblib
+import pandas as pd
 
 
 ML_FEATURE_NAMES = [
@@ -67,10 +68,6 @@ def prepare_ml_features(scoring: dict) -> dict:
 
 
 def load_ml_model():
-    """
-    Učitava istrenirani ML model ako postoji.
-    Ako fajl ne postoji, vraća None i sistem koristi rule-based fallback.
-    """
     global _MODEL_CACHE
 
     if _MODEL_CACHE is not None:
@@ -84,10 +81,6 @@ def load_ml_model():
 
 
 def rule_based_risk_probability(scoring: dict, validation: dict) -> float:
-    """
-    Privremeni rule-based model.
-    Koristi se samo dok models/kapitalac_ml_model.joblib ne postoji.
-    """
     altman_private = scoring.get("altman_private", {})
     classification = altman_private.get("classification", {})
     risk_level = classification.get("risk_level")
@@ -154,13 +147,13 @@ def classify_ml_probability(probability: float) -> dict:
 
 
 def predict_with_real_model(features: dict, model_bundle: dict) -> dict:
-    """
-    Predikcija pomoću pravog istreniranog modela.
-    """
     model = model_bundle["model"]
     feature_names = model_bundle["feature_names"]
 
-    row = [[features.get(feature_name, 0.0) for feature_name in feature_names]]
+    row = pd.DataFrame(
+        [[features.get(feature_name, 0.0) for feature_name in feature_names]],
+        columns=feature_names,
+    )
 
     if hasattr(model, "predict_proba"):
         probability = float(model.predict_proba(row)[0][1])
@@ -180,17 +173,13 @@ def predict_with_real_model(features: dict, model_bundle: dict) -> dict:
         "classification": classification,
         "features": features,
         "model_metrics": model_bundle.get("metrics", {}),
-        "note": "Rezultat je izračunat pomoću istreniranog ML modela.",
+        "all_model_metrics": model_bundle.get("all_model_metrics", {}),
+        "training_info": model_bundle.get("training_info", {}),
+        "note": "Rezultat je izračunat pomoću istreniranog hibridnog ML modela.",
     }
 
 
 def predict_ml_risk(scoring: dict, validation: dict) -> dict:
-    """
-    Glavna funkcija za predikciju rizika.
-
-    Ako postoji models/kapitalac_ml_model.joblib, koristi pravi ML model.
-    Ako ne postoji, koristi privremeni rule-based model.
-    """
     features = prepare_ml_features(scoring)
     model_bundle = load_ml_model()
 
