@@ -24,10 +24,16 @@ IMPORTANT_FIELDS_FOR_DASHBOARD = [
 
 
 def is_missing(value) -> bool:
+    """
+    Provjerava da li vrijednost nedostaje.
+    """
     return value is None or value == ""
 
 
 def validate_required_fields(financials: dict) -> list[dict]:
+    """
+    Provjerava polja koja su obavezna za Altman modele.
+    """
     warnings = []
 
     for field in REQUIRED_FIELDS_FOR_ALTMAN:
@@ -45,6 +51,10 @@ def validate_required_fields(financials: dict) -> list[dict]:
 
 
 def validate_dashboard_fields(financials: dict) -> list[dict]:
+    """
+    Provjerava dodatna polja koja nijesu obavezna za Altman,
+    ali su korisna za dashboard i širu finansijsku analizu.
+    """
     warnings = []
 
     for field in IMPORTANT_FIELDS_FOR_DASHBOARD:
@@ -54,7 +64,7 @@ def validate_dashboard_fields(financials: dict) -> list[dict]:
                     "type": "missing_dashboard_field",
                     "field": field,
                     "severity": "medium",
-                    "message": f"Nedostaje podatak za dodatnu analizu/dashboard: {field}.",
+                    "message": f"Nedostaje podatak za dodatnu analizu i dashboard prikaz: {field}.",
                 }
             )
 
@@ -62,6 +72,9 @@ def validate_dashboard_fields(financials: dict) -> list[dict]:
 
 
 def validate_balance_sheet(financials: dict) -> list[dict]:
+    """
+    Provjerava osnovnu logiku bilansa stanja.
+    """
     warnings = []
 
     total_assets = financials.get("total_assets")
@@ -108,6 +121,9 @@ def validate_balance_sheet(financials: dict) -> list[dict]:
 
 
 def validate_extraction_sources(financials: dict) -> list[dict]:
+    """
+    Provjerava da li za ključna polja postoji izvorni red iz PDF-a.
+    """
     warnings = []
 
     extraction_details = financials.get("extraction_details", {})
@@ -122,7 +138,7 @@ def validate_extraction_sources(financials: dict) -> list[dict]:
                     "type": "missing_source_line",
                     "field": field,
                     "severity": "medium",
-                    "message": f"Nije pronađen izvorni red u PDF-u za polje: {field}.",
+                    "message": f"Nije pronađen izvorni red u PDF izvještaju za polje: {field}.",
                 }
             )
 
@@ -130,6 +146,9 @@ def validate_extraction_sources(financials: dict) -> list[dict]:
 
 
 def calculate_data_quality_score(warnings: list[dict]) -> dict:
+    """
+    Računa procjenu kvaliteta ekstrakcije podataka.
+    """
     score = 100
 
     for warning in warnings:
@@ -161,6 +180,9 @@ def calculate_data_quality_score(warnings: list[dict]) -> dict:
 
 
 def validate_financial_data(financials: dict) -> dict:
+    """
+    Glavna funkcija za validaciju finansijskih podataka.
+    """
     warnings = []
 
     warnings.extend(validate_required_fields(financials))
@@ -184,6 +206,9 @@ def validate_financial_data(financials: dict) -> dict:
 
 
 def format_number(value: Optional[float]) -> Optional[str]:
+    """
+    Formatira broj za prikaz na dashboardu.
+    """
     if value is None:
         return None
 
@@ -194,6 +219,9 @@ def format_number(value: Optional[float]) -> Optional[str]:
 
 
 def format_percent(value: Optional[float]) -> Optional[str]:
+    """
+    Formatira decimalnu vrijednost kao procenat.
+    """
     if value is None:
         return None
 
@@ -211,6 +239,9 @@ def build_lovable_payload(
     model_explanation: dict | None = None,
     drift_detection: dict | None = None,
 ) -> dict:
+    """
+    Gradi finalni JSON objekat koji Lovable frontend koristi za prikaz rezultata.
+    """
     private_score = scoring.get("altman_private", {})
     original_score = scoring.get("altman_original", {})
     ratios = scoring.get("ratios", {})

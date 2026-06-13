@@ -4,7 +4,9 @@ from typing import Optional
 def safe_divide(numerator: Optional[float], denominator: Optional[float]) -> Optional[float]:
     """
     Sigurno dijeljenje.
-    Ako podatak ne postoji ili je imenilac 0, vraća None.
+
+    Ako brojilac ne postoji, imenilac ne postoji ili je imenilac jednak nuli,
+    funkcija vraća None kako sistem ne bi pucao tokom računanja pokazatelja.
     """
     if numerator is None or denominator is None:
         return None
@@ -17,7 +19,7 @@ def safe_divide(numerator: Optional[float], denominator: Optional[float]) -> Opt
 
 def round_value(value: Optional[float], decimals: int = 4) -> Optional[float]:
     """
-    Zaokružuje broj ako postoji.
+    Zaokružuje numeričku vrijednost ako postoji.
     """
     if value is None:
         return None
@@ -27,10 +29,13 @@ def round_value(value: Optional[float], decimals: int = 4) -> Optional[float]:
 
 def get_total_liabilities(financials: dict) -> Optional[float]:
     """
-    Računa ukupne obaveze.
+    Računa ukupne obaveze kompanije.
 
-    Najbolji pristup:
+    Primarni pristup:
     ukupne obaveze = ukupna aktiva - kapital
+
+    Ako aktiva ili kapital nijesu dostupni, koristi se zbir dugoročnih
+    i kratkoročnih obaveza.
     """
     total_assets = financials.get("total_assets")
     equity = financials.get("equity")
@@ -49,9 +54,9 @@ def classify_altman_original(z_score: Optional[float]) -> dict:
     Klasifikacija za originalni Altman Z-Score.
 
     Granice:
-    Z > 2.99       - Safe zone
-    1.81 - 2.99    - Grey zone
-    Z < 1.81       - Distress zone
+    Z > 2.99       - stabilna zona
+    1.81 - 2.99    - siva zona
+    Z < 1.81       - zona visokog rizika
     """
     if z_score is None:
         return {
@@ -76,19 +81,19 @@ def classify_altman_original(z_score: Optional[float]) -> dict:
 
     return {
         "zone": "Distress zone",
-        "label": "Visok rizik bankrota",
+        "label": "Visok rizik",
         "risk_level": "high",
     }
 
 
 def classify_altman_private(z_prime_score: Optional[float]) -> dict:
     """
-    Klasifikacija za Altman Z'-Score za privatne firme.
+    Klasifikacija za Altman Z'-Score, koji je pogodniji za privatne firme.
 
     Granice:
-    Z' > 2.90       - Safe zone
-    1.21 - 2.90     - Grey zone
-    Z' < 1.21       - Distress zone
+    Z' > 2.90       - stabilna zona
+    1.21 - 2.90     - siva zona
+    Z' < 1.21       - zona visokog rizika
     """
     if z_prime_score is None:
         return {
@@ -113,20 +118,20 @@ def classify_altman_private(z_prime_score: Optional[float]) -> dict:
 
     return {
         "zone": "Distress zone",
-        "label": "Visok rizik bankrota",
+        "label": "Visok rizik",
         "risk_level": "high",
     }
 
 
 def calculate_altman_variables(financials: dict) -> dict:
     """
-    Računa X1-X5 varijable za Altman model.
+    Računa X1-X5 varijable koje koristi Altman model.
 
-    X1 = Radni kapital / Ukupna aktiva
-    X2 = Neraspoređena dobit / Ukupna aktiva
-    X3 = Poslovni rezultat / Ukupna aktiva
-    X4 = Kapital / Ukupne obaveze
-    X5 = Prihodi od prodaje / Ukupna aktiva
+    X1 = radni kapital / ukupna aktiva
+    X2 = zadržana dobit / ukupna aktiva
+    X3 = poslovni rezultat / ukupna aktiva
+    X4 = kapital / ukupne obaveze
+    X5 = prihodi od prodaje / ukupna aktiva
     """
     total_assets = financials.get("total_assets")
     current_assets = financials.get("current_assets")
@@ -161,7 +166,7 @@ def calculate_altman_variables(financials: dict) -> dict:
 
 def calculate_financial_ratios(financials: dict) -> dict:
     """
-    Računa dodatne finansijske pokazatelje za dashboard i budući ML model.
+    Računa dodatne finansijske pokazatelje za dashboard i ML model.
     """
     total_assets = financials.get("total_assets")
     current_assets = financials.get("current_assets")
@@ -201,8 +206,7 @@ def build_explanation(
     private_classification: dict,
 ) -> list[str]:
     """
-    Pravi jednostavno poslovno objašnjenje rezultata.
-    Kasnije ćemo ovo proširiti ML i SHAP objašnjenjima.
+    Pravi poslovno objašnjenje rezultata koje se prikazuje korisniku.
     """
     explanation = []
 
@@ -267,14 +271,18 @@ def build_explanation(
             explanation.append("Neto profitna marža je negativna.")
 
     if x1 is not None and x1 < 0:
-        explanation.append("Radni kapital je negativan, što nepovoljno utiče na Altman rezultat.")
+        explanation.append(
+            "Radni kapital je negativan, što nepovoljno utiče na Altman rezultat."
+        )
 
     if x3 is not None and x3 > 0:
-        explanation.append("Pozitivan poslovni rezultat doprinosi boljem Altman rezultatu.")
+        explanation.append(
+            "Pozitivan poslovni rezultat doprinosi boljem Altman rezultatu."
+        )
 
     if x4 is not None and x4 > 1:
         explanation.append(
-            "Kapital je veći od ukupnih obaveza, što značajno smanjuje finansijski rizik."
+            "Kapital je veći od ukupnih obaveza, što smanjuje finansijski rizik."
         )
 
     return explanation
@@ -346,14 +354,14 @@ def calculate_altman_scores(financials: dict) -> dict:
             "classification": original_classification,
             "note": (
                 "Originalni Altman Z-Score koristi tržišnu vrijednost kapitala. "
-                "Za firme koje nijesu na berzi ovdje se koristi knjigovodstveni kapital kao praktična aproksimacija."
+                "Za kompanije koje nijesu na berzi, u ovom sistemu se koristi knjigovodstveni kapital kao praktična aproksimacija."
             ),
         },
         "altman_private": {
             "score": round_value(z_prime_score),
             "classification": private_classification,
             "note": (
-                "Altman Z'-Score je pogodniji za privatne firme jer koristi knjigovodstvenu vrijednost kapitala."
+                "Altman Z'-Score je pogodniji za privatne kompanije jer koristi knjigovodstvenu vrijednost kapitala."
             ),
         },
         "variables": rounded_variables,

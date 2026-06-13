@@ -28,6 +28,12 @@ _MODEL_CACHE = None
 
 
 def safe_value(value: Optional[float], default: float = 0.0) -> float:
+    """
+    Vraća numeričku vrijednost za ML model.
+
+    Ako podatak nedostaje ili nije moguće pretvoriti ga u broj,
+    koristi se podrazumijevana vrijednost.
+    """
     if value is None:
         return default
 
@@ -38,6 +44,9 @@ def safe_value(value: Optional[float], default: float = 0.0) -> float:
 
 
 def prepare_ml_features(scoring: dict) -> dict:
+    """
+    Priprema ulazne finansijske pokazatelje za ML model.
+    """
     ratios = scoring.get("ratios", {})
     variables = scoring.get("variables", {})
 
@@ -68,6 +77,12 @@ def prepare_ml_features(scoring: dict) -> dict:
 
 
 def load_ml_model():
+    """
+    Učitava sačuvani ML model.
+
+    Model se kešira nakon prvog učitavanja kako se ne bi čitao sa diska
+    pri svakom API pozivu.
+    """
     global _MODEL_CACHE
 
     if _MODEL_CACHE is not None:
@@ -77,10 +92,16 @@ def load_ml_model():
         return None
 
     _MODEL_CACHE = joblib.load(MODEL_PATH)
+
     return _MODEL_CACHE
 
 
 def rule_based_risk_probability(scoring: dict, validation: dict) -> float:
+    """
+    Privremena rule-based procjena rizika.
+
+    Koristi se samo kada pravi ML model nije pronađen u models/ folderu.
+    """
     altman_private = scoring.get("altman_private", {})
     classification = altman_private.get("classification", {})
     risk_level = classification.get("risk_level")
@@ -125,6 +146,9 @@ def rule_based_risk_probability(scoring: dict, validation: dict) -> float:
 
 
 def classify_ml_probability(probability: float) -> dict:
+    """
+    Pretvara vjerovatnoću rizika u poslovnu klasifikaciju.
+    """
     if probability < 0.25:
         return {
             "risk_class": "Low risk",
@@ -147,6 +171,9 @@ def classify_ml_probability(probability: float) -> dict:
 
 
 def make_feature_row(features: dict, feature_names: list[str]) -> pd.DataFrame:
+    """
+    Pravi jedan red podataka u formatu koji očekuje scikit-learn pipeline.
+    """
     return pd.DataFrame(
         [[features.get(feature_name, 0.0) for feature_name in feature_names]],
         columns=feature_names,
@@ -154,6 +181,9 @@ def make_feature_row(features: dict, feature_names: list[str]) -> pd.DataFrame:
 
 
 def predict_probability_for_model(model, features: dict, feature_names: list[str]) -> float:
+    """
+    Računa vjerovatnoću rizika za jedan model.
+    """
     row = make_feature_row(features=features, feature_names=feature_names)
 
     if hasattr(model, "predict_proba"):
@@ -173,6 +203,9 @@ def build_model_prediction_item(
     metrics: dict,
     active_model_name: str,
 ) -> dict:
+    """
+    Pravi standardizovan rezultat predikcije za jedan model.
+    """
     classification = classify_ml_probability(probability)
 
     return {
@@ -192,6 +225,12 @@ def build_candidate_predictions(
     model_bundle: dict,
     features: dict,
 ) -> list[dict]:
+    """
+    Pravi predikcije za sve sačuvane ML kandidate.
+
+    Ovo omogućava da se na frontend-u prikaže poređenje više modela,
+    a ne samo rezultat aktivnog modela.
+    """
     feature_names = model_bundle.get("feature_names", ML_FEATURE_NAMES)
     active_model_name = model_bundle.get("model_name", "Kapitalac ML Model")
     all_model_metrics = model_bundle.get("all_model_metrics", {})
@@ -239,7 +278,6 @@ def build_candidate_predictions(
 
         return predictions
 
-    # Fallback za starije modele gdje nije sačuvan candidate_models.
     active_model = model_bundle.get("model")
 
     if active_model is not None:
@@ -262,6 +300,12 @@ def build_candidate_predictions(
 
 
 def build_model_consensus(candidate_predictions: list[dict]) -> dict:
+    """
+    Računa konsenzus više modela.
+
+    Ako postoji neriješen rezultat, sistem bira konzervativniju opciju,
+    odnosno viši nivo rizika.
+    """
     valid_predictions = [
         item for item in candidate_predictions
         if item.get("risk_level") in ["low", "medium", "high"]
@@ -331,6 +375,10 @@ def build_model_consensus(candidate_predictions: list[dict]) -> dict:
 
 
 def predict_with_real_model(features: dict, model_bundle: dict) -> dict:
+    """
+    Pokreće pravi istrenirani ML model i vraća aktivnu predikciju,
+    predikcije svih kandidata i konsenzus modela.
+    """
     feature_names = model_bundle.get("feature_names", ML_FEATURE_NAMES)
     active_model_name = model_bundle.get("model_name", "Kapitalac ML Model")
     active_model = model_bundle.get("model")
@@ -367,7 +415,10 @@ def predict_with_real_model(features: dict, model_bundle: dict) -> dict:
         classification = classify_ml_probability(probability)
     else:
         probability = active_prediction.get("risk_probability", 0.50)
-        classification = active_prediction.get("classification", classify_ml_probability(probability))
+        classification = active_prediction.get(
+            "classification",
+            classify_ml_probability(probability),
+        )
 
     model_consensus = build_model_consensus(candidate_predictions)
 
@@ -394,6 +445,9 @@ def predict_with_real_model(features: dict, model_bundle: dict) -> dict:
 
 
 def predict_ml_risk(scoring: dict, validation: dict) -> dict:
+    """
+    Glavna funkcija za ML procjenu rizika.
+    """
     features = prepare_ml_features(scoring)
     model_bundle = load_ml_model()
 

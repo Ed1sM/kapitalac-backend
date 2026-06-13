@@ -14,8 +14,8 @@ def auto_label_from_altman(zone: str):
     """
     Automatsko označavanje na osnovu Altman Z' zone.
 
-    0 = stabilna firma
-    1 = rizična firma
+    0 = stabilna kompanija
+    1 = rizična kompanija
 
     Safe zone se tretira kao stabilna.
     Distress zone se tretira kao rizična.
@@ -117,11 +117,11 @@ def main():
 
     print("Training dataset je automatski pripremljen.")
     print(f"Glavni fajl: {OUTPUT_PATH}")
-    print(f"Firme koje nijesu korišćene za treniranje: {REVIEW_OUTPUT_PATH}")
+    print(f"Kompanije koje nijesu korišćene za treniranje: {REVIEW_OUTPUT_PATH}")
     print()
     print("Raspodjela automatskih labela:")
-    print(f"- 0 stabilna firma: {class_counts.get(0, 0)}")
-    print(f"- 1 rizična firma: {class_counts.get(1, 0)}")
+    print(f"- 0 stabilna kompanija: {class_counts.get(0, 0)}")
+    print(f"- 1 rizična kompanija: {class_counts.get(1, 0)}")
     print(f"- isključeno iz treninga: {len(review_df)}")
     print()
     print("Napomena:")
@@ -129,6 +129,7 @@ def main():
     print("Safe zone = 0, Distress zone = 1, Grey zone se ne koristi za trening.")
     print()
     print("Pregled trening redova:")
+
     preview_columns = [
         "file_name",
         "company_name",

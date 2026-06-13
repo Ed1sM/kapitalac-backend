@@ -42,11 +42,15 @@ FINANCIAL_FIELDS = {
 
 
 def extract_text_from_pdf(pdf_path: str) -> str:
+    """
+    Čita tekst iz PDF finansijskog izvještaja.
+    """
     all_text = []
 
     with pdfplumber.open(pdf_path) as pdf:
         for page in pdf.pages:
             text = page.extract_text(x_tolerance=1, y_tolerance=3)
+
             if text:
                 all_text.append(text)
 
@@ -54,6 +58,13 @@ def extract_text_from_pdf(pdf_path: str) -> str:
 
 
 def parse_number(value: Optional[str]):
+    """
+    Pretvara broj iz formata koji se pojavljuje u crnogorskim izvještajima.
+
+    Primjeri:
+    40.246  -> 40246
+    1.234,56 -> 1234.56
+    """
     if value is None:
         return None
 
@@ -78,12 +89,19 @@ def parse_number(value: Optional[str]):
 
 
 def clean_company_name(name: str) -> str:
+    """
+    Čisti naziv kompanije iz PDF teksta.
+    """
     name = name.replace("\n", " ")
     name = re.sub(r"\s+", " ", name)
+
     return name.strip()
 
 
 def find_company_name(text: str) -> Optional[str]:
+    """
+    Pronalazi naziv kompanije iz zaglavlja finansijskog izvještaja.
+    """
     lines = text.splitlines()
 
     for index, line in enumerate(lines):
@@ -118,6 +136,9 @@ def find_company_name(text: str) -> Optional[str]:
 
 
 def find_meta_data(text: str) -> dict:
+    """
+    Izdvaja osnovne podatke o kompaniji i izvještaju.
+    """
     meta = {
         "company_name": None,
         "registration_number": None,
@@ -143,6 +164,9 @@ def find_meta_data(text: str) -> dict:
 
 
 def extract_section(text: str, start_marker: str, end_marker: Optional[str] = None) -> str:
+    """
+    Izdvaja dio teksta između dva markera.
+    """
     start_index = text.find(start_marker)
 
     if start_index == -1:
@@ -160,6 +184,11 @@ def extract_section(text: str, start_marker: str, end_marker: Optional[str] = No
 
 
 def find_values_by_row_code(section_text: str, row_code: str) -> dict:
+    """
+    Pronalazi vrijednost u izvještaju na osnovu šifre reda.
+
+    Vraća vrijednost za tekuću godinu, prethodnu godinu i izvorni red iz PDF-a.
+    """
     number_pattern = r"-?\d{1,3}(?:\.\d{3})*(?:,\d+)?|-?\d+"
 
     valid_row_pattern = re.compile(
@@ -194,10 +223,16 @@ def find_values_by_row_code(section_text: str, row_code: str) -> dict:
 
 
 def zero_if_none(value):
+    """
+    Vraća 0 ako vrijednost nije pronađena.
+    """
     return 0 if value is None else value
 
 
 def set_fallback_detail(result: dict, field: str, row_code: str, value, source_line: str):
+    """
+    Upisuje fallback vrijednost i bilježi objašnjenje kako je vrijednost dobijena.
+    """
     result[field] = value
     result[f"{field}_previous"] = None
 
@@ -218,8 +253,6 @@ def apply_fallbacks(result: dict) -> dict:
     iz drugih pozicija bilansa.
     """
 
-    # 1. Ako ukupna aktiva nije pronađena, ali ukupna pasiva jeste,
-    # koristimo ukupnu pasivu kao ukupnu aktivu jer bilans mora biti izjednačen.
     if result.get("total_assets") is None and result.get("total_liabilities_and_equity") is not None:
         set_fallback_detail(
             result=result,
@@ -229,7 +262,6 @@ def apply_fallbacks(result: dict) -> dict:
             source_line="Fallback: total_assets = total_liabilities_and_equity",
         )
 
-    # 2. Ako nema dugoročnih obaveza, tretiramo ih kao 0.
     if result.get("long_term_liabilities") is None:
         set_fallback_detail(
             result=result,
@@ -239,8 +271,6 @@ def apply_fallbacks(result: dict) -> dict:
             source_line="Fallback: prazna pozicija dugoročnih obaveza tretirana kao 0",
         )
 
-    # 3. Ako nema obrtnih sredstava, računamo ih kao:
-    # obrtna sredstva = ukupna aktiva - stalna imovina.
     if (
         result.get("current_assets") is None
         and result.get("total_assets") is not None
@@ -256,9 +286,6 @@ def apply_fallbacks(result: dict) -> dict:
             source_line="Fallback: current_assets = total_assets - fixed_assets",
         )
 
-    # 4. Ako kratkoročne obaveze nijesu pronađene, pokušavamo ih izračunati:
-    # ukupne obaveze = ukupna aktiva - kapital
-    # kratkoročne obaveze = ukupne obaveze - dugoročne obaveze
     if (
         result.get("short_term_liabilities") is None
         and result.get("total_assets") is not None
@@ -278,8 +305,6 @@ def apply_fallbacks(result: dict) -> dict:
             ),
         )
 
-    # 5. Fallback za retained_earnings:
-    # 112 + 113 - 114 - 115
     if result.get("retained_earnings") is None:
         retained_parts = [
             result.get("retained_profit_previous_years"),
@@ -304,8 +329,6 @@ def apply_fallbacks(result: dict) -> dict:
                 source_line="Fallback: retained_earnings = 112 + 113 - 114 - 115",
             )
 
-    # 6. Fallback za sales_revenue:
-    # prvo pokušavamo iz Statističkog aneksa 002 + 003.
     if result.get("sales_revenue") is None:
         goods = result.get("sales_revenue_goods")
         services = result.get("sales_revenue_products_services")
@@ -321,8 +344,6 @@ def apply_fallbacks(result: dict) -> dict:
                 source_line="Fallback: sales_revenue = statistički aneks red 002 + red 003",
             )
 
-    # 7. Ako sales_revenue i dalje nije pronađen, tretiramo ga kao 0.
-    # Kod dosta malih/rizičnih firmi red prihoda je prazan jer firma nije imala promet.
     if result.get("sales_revenue") is None:
         set_fallback_detail(
             result=result,
@@ -332,7 +353,6 @@ def apply_fallbacks(result: dict) -> dict:
             source_line="Fallback: prazna pozicija prihoda od prodaje tretirana kao 0",
         )
 
-    # 8. Ako nema zaliha, gotovine ili potraživanja, tretiramo prazno kao 0.
     zero_fallback_fields = {
         "inventory": "026",
         "short_term_receivables": "031",
@@ -353,6 +373,9 @@ def apply_fallbacks(result: dict) -> dict:
 
 
 def extract_financials_from_pdf(pdf_path: str) -> dict:
+    """
+    Glavna funkcija za ekstrakciju finansijskih podataka iz PDF izvještaja.
+    """
     text = extract_text_from_pdf(pdf_path)
     meta = find_meta_data(text)
 

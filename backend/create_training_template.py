@@ -19,7 +19,7 @@ def main():
 
     example_rows = [
         {
-            "company_name": "Primjer stabilne firme",
+            "company_name": "Primjer stabilne kompanije",
             "registration_number": "00000001",
             "report_year": 2025,
             "target_bankrupt": 0,
@@ -39,7 +39,7 @@ def main():
             "sales_to_assets": 1.1,
         },
         {
-            "company_name": "Primjer rizične firme",
+            "company_name": "Primjer rizične kompanije",
             "registration_number": "00000002",
             "report_year": 2025,
             "target_bankrupt": 1,
@@ -64,7 +64,10 @@ def main():
     df.to_csv(output_path, index=False, encoding="utf-8-sig")
 
     print(f"Šablon dataseta je kreiran: {output_path}")
-    print("Kopiraj ovaj fajl kao data/processed/training_dataset.csv i popuni ga stvarnim podacima.")
+    print(
+        "Kopiraj ovaj fajl kao data/processed/training_dataset.csv "
+        "i popuni ga stvarnim podacima."
+    )
 
 
 if __name__ == "__main__":

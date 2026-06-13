@@ -131,12 +131,14 @@ def mlops_status():
 def analyze_financials(extracted_data: dict) -> dict:
     validation = validate_financial_data(extracted_data)
     scoring = calculate_altman_scores(extracted_data)
+
     ml_prediction = predict_ml_risk(
         scoring=scoring,
         validation=validation,
     )
 
     model_explanation = build_prediction_explanation(ml_prediction)
+
     drift_detection = detect_feature_drift(
         features=ml_prediction.get("features", {}),
     )
@@ -255,6 +257,7 @@ def predict_risk(payload: dict = Body(...)):
         )
 
         model_explanation = build_prediction_explanation(prediction)
+
         drift_detection = detect_feature_drift(
             features=prediction.get("features", {}),
         )
@@ -286,42 +289,42 @@ def model_info():
             {
                 "name": "Altman Z-Score",
                 "type": "financial_formula",
-                "purpose": "Baseline procjena rizika bankrota",
+                "purpose": "Osnovna formula za procjenu rizika bankrota.",
             },
             {
                 "name": "Altman Z'-Score",
                 "type": "financial_formula",
-                "purpose": "Procjena rizika za privatne firme koje se ne kotiraju na berzi",
+                "purpose": "Formula prilagođena privatnim kompanijama koje se ne kotiraju na berzi.",
             },
             {
                 "name": "Logistic Regression",
                 "type": "machine_learning",
-                "purpose": "Binarna klasifikacija rizika",
+                "purpose": "Binarna klasifikacija finansijskog rizika.",
             },
             {
                 "name": "Random Forest",
                 "type": "machine_learning",
-                "purpose": "Nelinearni model za finansijske pokazatelje",
+                "purpose": "Nelinearni model za analizu finansijskih pokazatelja.",
             },
             {
                 "name": "XGBoost",
                 "type": "machine_learning_gradient_boosting",
-                "purpose": "Hibridni model za unapređenje Altman predikcije",
+                "purpose": "Hibridni model za unapređenje Altman procjene.",
             },
             {
                 "name": "SHAP explanations",
                 "type": "explainable_ai",
-                "purpose": "Objašnjenje koji faktori povećavaju ili smanjuju rizik",
+                "purpose": "Objašnjava koji faktori povećavaju ili smanjuju procijenjeni rizik.",
             },
             {
                 "name": "MLflow tracking",
                 "type": "mlops",
-                "purpose": "Praćenje eksperimenata, metrika i modela",
+                "purpose": "Praćenje eksperimenata, metrika i trening procesa.",
             },
             {
                 "name": "Drift detection",
                 "type": "mlops",
-                "purpose": "Praćenje odstupanja novih izvještaja od trening distribucije",
+                "purpose": "Praćenje odstupanja novih izvještaja od trening distribucije.",
             },
         ],
         "ml_note": (

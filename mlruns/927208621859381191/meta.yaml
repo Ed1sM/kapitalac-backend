@@ -1,9 +1,0 @@
-artifact_location: file:C:/Users/Korisnik/Desktop/bankarko/mlruns/927208621859381191
-creation_time: 1780532664910
-effective_trace_archival_retention: null
-experiment_id: '927208621859381191'
-last_update_time: 1780532664910
-lifecycle_stage: active
-name: kapitalac-bankruptcy-risk
-trace_location: null
-workspace: default

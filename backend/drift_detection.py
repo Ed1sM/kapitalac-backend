@@ -4,26 +4,35 @@ from backend.ml_model import ML_FEATURE_NAMES, load_ml_model
 FEATURE_LABELS = {
     "current_ratio": "Tekuća likvidnost",
     "quick_ratio": "Brza likvidnost",
-    "cash_ratio": "Cash ratio",
+    "cash_ratio": "Odnos gotovine i kratkoročnih obaveza",
     "debt_to_assets": "Zaduženost u odnosu na aktivu",
     "debt_to_equity": "Zaduženost u odnosu na kapital",
-    "roa": "ROA",
+    "roa": "Prinos na aktivu",
     "operating_margin": "Operativna marža",
     "net_profit_margin": "Neto profitna marža",
     "asset_turnover": "Obrt aktive",
-    "working_capital_to_assets": "Radni kapital / aktiva",
-    "retained_earnings_to_assets": "Zadržana dobit / aktiva",
-    "ebit_to_assets": "EBIT / aktiva",
-    "equity_to_liabilities": "Kapital / obaveze",
-    "sales_to_assets": "Prihodi / aktiva",
+    "working_capital_to_assets": "Radni kapital u odnosu na aktivu",
+    "retained_earnings_to_assets": "Zadržana dobit u odnosu na aktivu",
+    "ebit_to_assets": "Poslovni rezultat u odnosu na aktivu",
+    "equity_to_liabilities": "Kapital u odnosu na obaveze",
+    "sales_to_assets": "Prihodi u odnosu na aktivu",
 }
 
 
 def get_label(feature_name: str) -> str:
+    """
+    Vraća korisnički čitljiv naziv finansijskog pokazatelja.
+    """
     return FEATURE_LABELS.get(feature_name, feature_name)
 
 
 def detect_feature_drift(features: dict) -> dict:
+    """
+    Provjerava da li novi finansijski izvještaj značajno odstupa od trening distribucije.
+
+    Ova verzija drift detekcije koristi referentnu statistiku iz model bundle-a:
+    prosjek, standardnu devijaciju, minimum, maksimum i 5–95% raspon.
+    """
     model_bundle = load_ml_model()
 
     if model_bundle is None:

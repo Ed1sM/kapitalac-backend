@@ -1,61 +1,39 @@
-# Kapitalac
+# Kapitalac 
 
-Kapitalac je AI alat za analizu finansijskih izvještaja crnogorskih kompanija. Sistem automatski čita PDF finansijske izvještaje, izvlači ključne podatke iz bilansa, računa Altman Z-Score, Altman Z'-Score, finansijske pokazatelje i ML procjenu rizika poslovanja.
+Kapitalac je backend sistem za automatsku analizu finansijskih izvještaja crnogorskih kompanija i procjenu rizika poslovanja. Sistem prima PDF finansijski izvještaj, izdvaja ključne bilansne pozicije, računa Altman Z-Score i Altman Z'-Score, formira dodatne finansijske pokazatelje, pokreće hibridni ML model i vraća strukturisan JSON odgovor spreman za web aplikaciju.
+
+## Glavna ideja
+
+Cilj projekta je da se statički finansijski izvještaj pretvori u interaktivan kreditno-analitički alat. Umjesto ručnog prepisivanja podataka iz PDF izvještaja, Kapitalac automatski obrađuje dokument i prikazuje procjenu finansijskog zdravlja kompanije.
+
+Sistem je prilagođen formatu finansijskih izvještaja koji su dostupni za kompanije u Crnoj Gori.
 
 ## Funkcionalnosti
 
-- Upload PDF finansijskog izvještaja
-- Ekstrakcija podataka iz crnogorskih finansijskih obrazaca
+- Upload i obrada PDF finansijskog izvještaja
+- Automatsko izdvajanje finansijskih podataka iz izvještaja
+- Validacija kvaliteta izdvojenih podataka
+- Originalni Altman Z-Score
+- Altman Z'-Score za privatne kompanije
+- Pokazatelji likvidnosti, zaduženosti, profitabilnosti i obrta aktive
+- Hibridni ML model sa više kandidata
+- Automatski izbor aktivnog modela na osnovu metrika
+- Procjena rizika po svim ML kandidatima
+- Konsenzus modela
+- Objašnjenje faktora koji utiču na procjenu rizika
+- Drift detection za poređenje novih izvještaja sa trening distribucijom
+- MLOps status i MLflow tracking metapodaci
+- JSON odgovor prilagođen Lovable frontend aplikaciji
+
+## Modeli
+
+Kapitalac koristi kombinaciju finansijskih formula i mašinskog učenja:
+
 - Altman Z-Score
-- Altman Z'-Score za privatne firme
-- Finansijski pokazatelji:
-  - likvidnost
-  - zaduženost
-  - profitabilnost
-  - obrt aktive
-- Validacija kvaliteta ekstrakcije
-- ML procjena rizika
-- JSON format spreman za Lovable frontend
-
-## Tehnologije
-
-- Python
-- FastAPI
-- pdfplumber
-- pandas
-- scikit-learn
-- joblib
+- Altman Z'-Score
 - Logistic Regression
-- Lovable frontend
+- Random Forest
+- XGBoost
 
-## Struktura projekta
+Aktivni ML model bira se automatski prema evaluacionim metrikama. Ostali modeli se ne odbacuju, već se njihove procjene prikazuju radi transparentnosti i poređenja.
 
-```text
-bankarko/
-├── backend/
-│   ├── main.py
-│   ├── config.py
-│   ├── pdf_extractor.py
-│   ├── altman_score.py
-│   ├── validation.py
-│   ├── ml_model.py
-│   ├── train_model.py
-│   ├── build_dataset_from_pdfs.py
-│   ├── audit_dataset.py
-│   └── prepare_training_dataset.py
-│
-├── data/
-│   ├── raw/
-│   └── processed/
-│
-├── models/
-│   └── kapitalac_ml_model.joblib
-│
-├── docs/
-│   └── lovable_api_contract.md
-│
-├── requirements.txt
-├── Dockerfile
-├── .dockerignore
-├── .gitignore
-└── README.md

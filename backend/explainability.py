@@ -8,6 +8,7 @@ from backend.ml_model import ML_FEATURE_NAMES, load_ml_model
 
 try:
     import shap
+
     SHAP_AVAILABLE = True
 except Exception:
     shap = None
@@ -17,26 +18,32 @@ except Exception:
 FEATURE_LABELS = {
     "current_ratio": "Tekuća likvidnost",
     "quick_ratio": "Brza likvidnost",
-    "cash_ratio": "Cash ratio",
+    "cash_ratio": "Odnos gotovine i kratkoročnih obaveza",
     "debt_to_assets": "Zaduženost u odnosu na aktivu",
     "debt_to_equity": "Zaduženost u odnosu na kapital",
-    "roa": "ROA",
+    "roa": "Prinos na aktivu",
     "operating_margin": "Operativna marža",
     "net_profit_margin": "Neto profitna marža",
     "asset_turnover": "Obrt aktive",
-    "working_capital_to_assets": "Radni kapital / aktiva",
-    "retained_earnings_to_assets": "Zadržana dobit / aktiva",
-    "ebit_to_assets": "EBIT / aktiva",
-    "equity_to_liabilities": "Kapital / obaveze",
-    "sales_to_assets": "Prihodi / aktiva",
+    "working_capital_to_assets": "Radni kapital u odnosu na aktivu",
+    "retained_earnings_to_assets": "Zadržana dobit u odnosu na aktivu",
+    "ebit_to_assets": "Poslovni rezultat u odnosu na aktivu",
+    "equity_to_liabilities": "Kapital u odnosu na obaveze",
+    "sales_to_assets": "Prihodi u odnosu na aktivu",
 }
 
 
 def get_feature_label(feature_name: str) -> str:
+    """
+    Vraća korisnički čitljiv naziv finansijskog pokazatelja.
+    """
     return FEATURE_LABELS.get(feature_name, feature_name)
 
 
 def make_factor_explanation(feature_name: str, value: float, impact: float) -> str:
+    """
+    Pravi tekstualno objašnjenje za pojedinačni faktor modela.
+    """
     label = get_feature_label(feature_name)
 
     if impact > 0:
@@ -44,12 +51,15 @@ def make_factor_explanation(feature_name: str, value: float, impact: float) -> s
     elif impact < 0:
         direction = "smanjuje procijenjeni rizik"
     else:
-        direction = "nema značajan uticaj na rizik"
+        direction = "nema značajan uticaj na procijenjeni rizik"
 
     return f"{label} ({round(value, 4)}) {direction}."
 
 
 def format_factors(features: dict, impacts: dict) -> dict:
+    """
+    Formatira faktore koji utiču na predikciju modela.
+    """
     all_factors = []
 
     for feature_name, impact in impacts.items():
@@ -102,6 +112,9 @@ def format_factors(features: dict, impacts: dict) -> dict:
 
 
 def get_pipeline_classifier(model: Any):
+    """
+    Izvlači završni klasifikator iz scikit-learn pipeline-a.
+    """
     if hasattr(model, "named_steps"):
         return model.named_steps.get("classifier")
 
@@ -109,6 +122,9 @@ def get_pipeline_classifier(model: Any):
 
 
 def transform_pipeline_input(model: Any, row: pd.DataFrame):
+    """
+    Primjenjuje preprocessing dio pipeline-a prije objašnjenja modela.
+    """
     if hasattr(model, "steps") and len(model.steps) > 1:
         preprocessing_pipeline = model[:-1]
         return preprocessing_pipeline.transform(row)
@@ -117,6 +133,11 @@ def transform_pipeline_input(model: Any, row: pd.DataFrame):
 
 
 def explain_with_shap(model_bundle: dict, features: dict) -> dict | None:
+    """
+    Pokušava da napravi SHAP objašnjenje za XGBoost model.
+
+    SHAP se koristi samo kada je biblioteka dostupna i kada je aktivni model XGBoost.
+    """
     if not SHAP_AVAILABLE:
         return None
 
@@ -170,6 +191,9 @@ def explain_with_shap(model_bundle: dict, features: dict) -> dict | None:
 
 
 def explain_with_logistic_coefficients(model_bundle: dict, features: dict) -> dict | None:
+    """
+    Pravi objašnjenje na osnovu koeficijenata logističke regresije.
+    """
     model = model_bundle.get("model")
     feature_names = model_bundle.get("feature_names", ML_FEATURE_NAMES)
 
@@ -201,14 +225,17 @@ def explain_with_logistic_coefficients(model_bundle: dict, features: dict) -> di
         "is_shap_available": False,
         "model_name": model_bundle.get("model_name"),
         "description": (
-            "Model nije XGBoost, pa je prikazano objašnjenje na osnovu doprinosa "
-            "koeficijenata logističke regresije."
+            "Aktivni model nije XGBoost, pa je prikazano objašnjenje na osnovu "
+            "doprinosa koeficijenata logističke regresije."
         ),
         **factors,
     }
 
 
 def explain_with_feature_importance(model_bundle: dict, features: dict) -> dict | None:
+    """
+    Pravi fallback objašnjenje na osnovu važnosti varijabli.
+    """
     model = model_bundle.get("model")
     feature_names = model_bundle.get("feature_names", ML_FEATURE_NAMES)
 
@@ -242,6 +269,15 @@ def explain_with_feature_importance(model_bundle: dict, features: dict) -> dict 
 
 
 def build_prediction_explanation(ml_prediction: dict) -> dict:
+    """
+    Gradi finalno objašnjenje ML predikcije.
+
+    Redosljed pokušaja:
+    1. SHAP za XGBoost
+    2. koeficijenti logističke regresije
+    3. feature importance
+    4. poruka da objašnjenje nije dostupno
+    """
     features = ml_prediction.get("features", {})
     model_bundle = load_ml_model()
 
@@ -249,7 +285,7 @@ def build_prediction_explanation(ml_prediction: dict) -> dict:
         return {
             "method": "rule_based_explanation",
             "is_shap_available": False,
-            "description": "ML model nije učitan, koristi se osnovno pravilo za objašnjenje.",
+            "description": "ML model nije učitan, pa se koristi osnovno pravilo za objašnjenje.",
             "top_factors": [],
             "top_positive_factors": [],
             "top_negative_factors": [],

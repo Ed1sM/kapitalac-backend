@@ -1,30 +1,43 @@
-# Python
+# Python cache fajlovi
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 .Python
+.pytest_cache/
+.mypy_cache/
+
+# Virtuelna okruženja
 .venv/
 venv/
 env/
 
-# VS Code
-.vscode/
-
-# Environment
+# Environment fajlovi
 .env
+.env.local
 
-# Data files
-data/raw/
-data/processed/*.xlsx
-
-# Keep processed CSVs only if needed for project demo
-# data/processed/*.csv
-
-# Temporary files
-*.tmp
-*.log
-
-# OS
+# Editor i operativni sistem
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
+
+# Logovi i privremeni fajlovi
+*.log
+*.tmp
+*.bak
+
+# Lokalni MLflow tracking
+mlruns/
+mlflow.db
+
+# Privatni PDF izvještaji
+# Finansijski izvještaji mogu sadržati osjetljive podatke i ne treba ih slati na GitHub.
+data/raw/
+
+# Generisani Excel fajlovi
+data/processed/*.xlsx
+
+# VAŽNO:
+# Ne dodavati models/ u .gitignore.
+# Render mora imati models/kapitalac_ml_model.joblib da bi produkcioni ML model radio.

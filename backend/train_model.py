@@ -103,7 +103,7 @@ def validate_dataset(df: pd.DataFrame) -> None:
     if len(df) < 10:
         raise ValueError(
             "Premalo označenih redova za treniranje. "
-            "Potrebno je bar 10 označenih firmi, a bolje 30+."
+            "Potrebno je bar 10 označenih kompanija, a bolje 30 ili više."
         )
 
     unique_targets = sorted(df["target_bankrupt"].dropna().unique().tolist())
@@ -117,8 +117,8 @@ def validate_dataset(df: pd.DataFrame) -> None:
     class_counts = df["target_bankrupt"].value_counts().to_dict()
 
     print("Raspodjela klasa:")
-    print(f"- 0 stabilna firma: {class_counts.get(0, 0)}")
-    print(f"- 1 rizična firma: {class_counts.get(1, 0)}")
+    print(f"- 0 stabilna kompanija: {class_counts.get(0, 0)}")
+    print(f"- 1 rizična kompanija: {class_counts.get(1, 0)}")
 
     if class_counts.get(0, 0) < 5 or class_counts.get(1, 0) < 5:
         print()
@@ -302,7 +302,10 @@ def log_to_mlflow(best_model: dict, all_models: list[dict], training_info: dict)
             mlflow.log_param("class_0_count", training_info["class_counts"].get(0, 0))
             mlflow.log_param("class_1_count", training_info["class_counts"].get(1, 0))
             mlflow.log_param("labeling_method", training_info["labeling_method"])
-            mlflow.log_param("model_artifact_note", "Model is stored with joblib, not MLflow registry.")
+            mlflow.log_param(
+                "model_artifact_note",
+                "Model is stored with joblib, not MLflow registry.",
+            )
 
             for metric_name, metric_value in best_model["metrics"].items():
                 if metric_value is not None:
